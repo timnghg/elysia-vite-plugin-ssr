@@ -21,5 +21,4 @@ jobs:
                 with:
                     bun-version: ${{ matrix.bun-version }}
             -   run: bun install
-            -   run: cd test/test-app && bun install
             -   run: bun test
