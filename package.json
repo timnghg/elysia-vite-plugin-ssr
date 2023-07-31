@@ -1,0 +1,38 @@
+{
+  "name": "elysia-vite-plugin-ssr",
+  "version": "0.0.1",
+  "module": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "test": "bun test",
+    "build": "rimraf dist && npm run build:esm && npm run build:cjs",
+    "build:esm": "swc src/index.ts -d dist && tsc --project tsconfig.esm.json",
+    "build:cjs": "tsc --project tsconfig.cjs.json --module es2020"
+  },
+  "dependencies": {
+    "elysia-connect": "latest",
+    "elysia-vite": "latest",
+    "lodash.omit": "*",
+    "vite-plugin-ssr": "^0.4.133",
+    "vite": "^4.4.7"
+  },
+  "devDependencies": {
+    "@types/lodash.omit": "^4.5.7",
+    "bun-types": "latest",
+    "elysia": "^0.5.25",
+    "@elysiajs/html": "*"
+  },
+  "peerDependencies": {
+    "@elysiajs/html": "*",
+    "vite": "^4.4.7",
+    "elysia": "^0.5.25"
+  },
+  "exports": {
+    ".": {
+      "bun": "./dist/index.js",
+      "node": "./dist/cjs/index.js",
+      "import": "./dist/index.js",
+      "require": "./dist/cjs/index.js"
+    }
+  }
+}
