@@ -7,12 +7,13 @@ describe("elysia-vite-plugin-ssr", () => {
     it("should work", async () => {
         const app = new Elysia()
             .use(elysiaVitePluginSsr({
-                root: path.resolve(import.meta.dir, "../src")
-            }))
-            .get('/', () => 'Hello');
+                ssr: {},
+                base: "/ssr",
+                root: path.resolve(import.meta.dir, "../")
+            }));
 
-        const text = await app.handle(new Request(`http://localhost/`)).then(r => r.text());
-        
+        const text = await app.handle(new Request(`http://localhost/ssr/`)).then(r => r.text());
+        console.log('text', text);
         expect(text != "Hello" && text != "NOT_FOUND").toBeTrue();
     })
 })

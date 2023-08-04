@@ -2,11 +2,14 @@ import {Elysia} from "elysia"
 import {elysiaConnectDecorate} from "elysia-connect";
 import {ViteConfig, elysiaViteConfig} from "elysia-vite";
 import * as path from "path";
-import {renderPage} from "vite-plugin-ssr";
+import {renderPage} from "vite-plugin-ssr/server";
+import {ssr} from "vite-plugin-ssr/plugin";
 import {Connect} from "vite";
 import {ServerResponse} from "node:http";
 
-export const elysiaVitePluginSsr = (config?: ViteConfig) => (app: Elysia) => app
+type ConfigVpsUserProvided = Parameters<typeof ssr>[0]
+
+export const elysiaVitePluginSsr = (config?: ViteConfig & { pluginSsr?: ConfigVpsUserProvided }) => (app: Elysia) => app
     .use(elysiaViteConfig(config))
     .use(elysiaConnectDecorate())
     .group(config?.base || "", app => app
@@ -16,12 +19,17 @@ export const elysiaVitePluginSsr = (config?: ViteConfig) => (app: Elysia) => app
             const vite = require('vite')
             const viteDevMiddleware = (
                 await vite.createServer({
-                    root: viteConfig?.root || path.resolve(import.meta.dir, "../"),
+                    root: viteConfig?.root || path.resolve(import.meta.dir, "./"),
                     ...viteConfig,
                     server: {middlewareMode: true, ...viteConfig?.server},
+                    plugins: (viteConfig.plugins || []).concat([
+                        ssr({
+                            baseServer: viteConfig.base,
+                            ...viteConfig?.pluginSsr,
+                        })
+                    ]),
                 })
             ).middlewares;
-
             const handled = await context.elysiaConnect(viteDevMiddleware, context);
             if (handled) return handled;
         })
@@ -33,7 +41,7 @@ export const elysiaVitePluginSsr = (config?: ViteConfig) => (app: Elysia) => app
 
 async function vitePluginSsrConnectMiddleware(req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) {
     const pageContextInit = {
-        urlOriginal: req.url
+        urlOriginal: (req.originalUrl || `http://${req.headers.host}`).replace(/\/$/, ''),
     };
     const pageContext = await renderPage(pageContextInit)
     const {httpResponse} = pageContext

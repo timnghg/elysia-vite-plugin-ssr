@@ -18,7 +18,12 @@ import {elysiaVitePluginSsr} from 'elysia-vite-plugin-ssr';
 const app = new Elysia({
     plugins: [
         elysiaVitePluginSsr({
-            // vite & vite-plugin-ssr options
+            // ... vite config
+            base: "/ssr", // no trailing slash
+            root: path.resolve(import.meta.dir, "../"), // absolute path to parent-dir, dirs should exist: [parent-dir]/pages, [parent-dir]/renderer
+            // pluginSsr: {
+            //     // ... vite-plugin-ssr config
+            // },
         }),
     ],
 });
