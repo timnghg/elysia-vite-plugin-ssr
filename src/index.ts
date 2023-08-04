@@ -3,13 +3,13 @@ import {elysiaConnectDecorate} from "elysia-connect";
 import {ViteConfig, elysiaViteConfig} from "elysia-vite";
 import * as path from "path";
 import {renderPage} from "vite-plugin-ssr/server";
-import {ssr} from "vite-plugin-ssr/plugin";
+import {ssr, UserConfig as ConfigVpsUserProvided} from "vite-plugin-ssr/plugin";
 import {Connect} from "vite";
 import {ServerResponse} from "node:http";
 
-type ConfigVpsUserProvided = Parameters<typeof ssr>[0]
+export type ElysiaVitePluginSsrConfig = ViteConfig & { pluginSsr?: ConfigVpsUserProvided }
 
-export const elysiaVitePluginSsr = (config?: ViteConfig & { pluginSsr?: ConfigVpsUserProvided }) => (app: Elysia) => app
+export const elysiaVitePluginSsr = (config?: ElysiaVitePluginSsrConfig) => (app: Elysia) => app
     .use(elysiaViteConfig(config))
     .use(elysiaConnectDecorate())
     .group(config?.base || "", app => app
@@ -25,7 +25,7 @@ export const elysiaVitePluginSsr = (config?: ViteConfig & { pluginSsr?: ConfigVp
                     plugins: (viteConfig.plugins || []).concat([
                         ssr({
                             baseServer: viteConfig.base,
-                            ...viteConfig?.pluginSsr,
+                            ...(viteConfig as ElysiaVitePluginSsrConfig)?.pluginSsr,
                         })
                     ]),
                 })
@@ -52,8 +52,7 @@ async function vitePluginSsrConnectMiddleware(req: Connect.IncomingMessage, res:
         if (res.writeEarlyHints) res.writeEarlyHints({link: earlyHints.map((e) => e.earlyHintLink)})
 
         // @todo: do we have headers here?
-        // httpResponse?.headers.forEach(([name, value]) => res.setHeader(name, value))
-
+        httpResponse?.headers.forEach(([name, value]) => res.setHeader(name, value))
         res.statusCode = statusCode;
 
         // @todo: can we do HTTP streams with Elysia?

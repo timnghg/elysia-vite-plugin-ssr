@@ -7,25 +7,27 @@
     "test": "bun test",
     "build": "rimraf dist && npm run build:esm && npm run build:cjs",
     "build:esm": "swc src/index.ts -d dist && tsc --project tsconfig.esm.json",
-    "build:cjs": "tsc --project tsconfig.cjs.json --module es2020"
+    "build:cjs": "tsc --project tsconfig.cjs.json --module es2020",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "elysia-connect": "latest",
     "elysia-vite": "latest",
     "lodash.omit": "*",
-    "vite-plugin-ssr": "^0.4.134",
-    "vite": "^4.4.8"
+    "vite": "^4.4.7",
+    "vite-plugin-ssr": "^0.4.134"
   },
   "devDependencies": {
+    "@elysiajs/html": "*",
     "@types/lodash.omit": "^4.5.7",
     "bun-types": "latest",
     "elysia": "^0.5.25",
-    "@elysiajs/html": "*"
+    "patch-package": "^8.0.0"
   },
   "peerDependencies": {
     "@elysiajs/html": "*",
-    "vite": "^4.4.7",
-    "elysia": "^0.5.25"
+    "elysia": "^0.5.25",
+    "vite": "^4.4.7"
   },
   "exports": {
     ".": {
