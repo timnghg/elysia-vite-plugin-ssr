@@ -1,9 +1,17 @@
-import {describe, expect, it} from "bun:test";
+import {afterAll, beforeAll, describe, expect, it} from "bun:test";
 import {Elysia} from "elysia";
 import {elysiaVitePluginSsr} from "../src/index.ts";
 import * as path from "path";
 
 describe("elysia-vite-plugin-ssr", () => {
+    beforeAll(async () => {
+        Bun.spawnSync(["bun", "add", "react", "react-dom"]);
+    });
+
+    afterAll(async () => {
+        Bun.spawnSync(["bun", "remove", "react", "react-dom"]);
+    });
+
     it("should work", async () => {
         const app = new Elysia()
             .use(elysiaVitePluginSsr({
