@@ -8,11 +8,11 @@ export {render}
 export {passToClient}
 
 // See https://vite-plugin-ssr.com/data-fetching
-const passToClient = ['pageProps']
+const passToClient = ['pageProps', '_baseServer']
 
 async function render(pageContext: any) {
     const {Page, pageProps} = pageContext
-    
+
     const html = renderToString(
         <PageContext.Provider value={pageContext}>
             <PageLayout>

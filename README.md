@@ -8,20 +8,23 @@ Use [vite-plugin-ssr](https://vite-plugin-ssr.com/) with [Elysia](https://elysia
 
 ## 2. Usage
 
+2.1. Prepare `src/pages` & `src/renderer` directory for vite-plugin-ssr. `src` can be changed at will.
+Please follow [vite-plugin-ssr guide](https://vite-plugin-ssr.com/add) for detailed instruction & example.
+
+2.2. Use `elysiaVitePluginSsr` plugins.
+
 ```js
+// src/index.ts
 import {Elysia} from 'elysia';
 import {elysiaVitePluginSsr} from 'elysia-vite-plugin-ssr';
 
-const app = new Elysia({
-    plugins: [
-        elysiaVitePluginSsr({
-            // ... vite config
-            base: "/ssr", // no trailing slash
-            root: path.resolve(import.meta.dir, "../"), // absolute path to parent-dir, dirs should exist: [parent-dir]/pages, [parent-dir]/renderer
-            // pluginSsr: {
-            //     // ... vite-plugin-ssr config
-            // },
-        }),
-    ],
-});
+const app = new Elysia()
+    .use(elysiaVitePluginSsr({
+        // ... optional other vite config
+        base: "/ssr", // no trailing slash
+        root: path.resolve(import.meta.dir, "./"), // directories `./pages`, `./renderer` should exists
+        pluginSsr: {
+            baseServer: "/ssr", // no trailing slash
+        },
+    }));
 ```

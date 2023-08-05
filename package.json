@@ -1,6 +1,6 @@
 {
   "name": "elysia-vite-plugin-ssr",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "module": "src/index.ts",
   "type": "module",
   "scripts": {
