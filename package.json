@@ -13,7 +13,7 @@
     "elysia-connect": "latest",
     "elysia-vite": "latest",
     "lodash.omit": "*",
-    "vite": "^4.4.7",
+    "vite": "^4.4.8",
     "vite-plugin-ssr": "0.4.134-commit-fc71d1f"
   },
   "devDependencies": {
