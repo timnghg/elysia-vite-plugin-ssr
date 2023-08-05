@@ -1,7 +1,7 @@
 import React from 'react'
 import './PageLayout.css'
-import {usePageContext} from "./_default.page.client";
-import {Link} from "../components/link";
+import {usePageContext} from "./_default.page.client.tsx";
+import {Link} from "../components/link.tsx";
 
 export {PageLayout}
 

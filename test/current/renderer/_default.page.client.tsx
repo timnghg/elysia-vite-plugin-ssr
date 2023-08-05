@@ -1,7 +1,7 @@
 import React from 'react'
 import {hydrateRoot, createRoot, Root} from 'react-dom/client'
-import {PageLayout} from './PageLayout'
-import {PageContext, TPageContext} from "./PageContext";
+import {PageLayout} from './PageLayout.tsx'
+import {PageContext, TPageContext} from "./PageContext.tsx";
 
 export {render}
 

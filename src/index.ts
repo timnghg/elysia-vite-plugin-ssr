@@ -23,24 +23,28 @@ export const elysiaVitePluginSsr = (config?: ElysiaVitePluginSsrConfig) => async
 
     const vite = require('vite');
 
-    const viteDevMiddleware = (
-        await vite.createServer({
-            root: resolvedConfig?.root || path.resolve(import.meta.dir, "./"),
-            ...resolvedConfig,
-            server: {middlewareMode: true, ...resolvedConfig?.server},
-            plugins: (resolvedConfig?.plugins || []).concat([
-                ssr({
-                    baseServer: resolvedConfig?.base,
-                    ...pluginSsr
-                })
-            ]),
-        })
-    ).middlewares;
+    const viteServer = await vite.createServer({
+        root: resolvedConfig?.root || path.resolve(import.meta.dir, "./"),
+        ...resolvedConfig,
+        server: {middlewareMode: true, ...resolvedConfig?.server},
+        plugins: (resolvedConfig?.plugins || []).concat([
+            ssr({
+                baseServer: resolvedConfig?.base,
+                ...pluginSsr
+            })
+        ]),
+    });
 
+    const viteDevMiddleware = viteServer.middlewares;
     log("viteDevMiddleware", !!viteDevMiddleware);
+
     onPluginSsrReady?.();
 
     return _app
+        .on("stop", async () => {
+            log('onStop :: reached');
+            return await viteServer.close();
+        })
         .group(config?.base || "", app => app
             .onBeforeHandle(async (context) => {
                 log('onBeforeHandle :: reached', context.request.url);
