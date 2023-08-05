@@ -2,9 +2,6 @@
 
 Use [vite-plugin-ssr](https://vite-plugin-ssr.com/) with [Elysia](https://elysiajs.com/).
 
-This plugin doesn't work right now. Let wait for [Support vite-plugin-ssr](https://github.com/oven-sh/bun/issues/3743)
-issue resolved.
-
 ## 1. Install
 
 `bun add elysia-vite-plugin-ssr`
