@@ -1,15 +1,29 @@
-import {describe, expect, it} from "bun:test";
+import {beforeAll, describe, expect, it} from "bun:test";
 import {Elysia} from "elysia";
 import {elysiaVitePluginSsr} from "../src/index";
 import * as path from "path";
+import react from "@vitejs/plugin-react"
 
 describe("elysia-vite-plugin-ssr", () => {
-    const app = new Elysia()
-        .use(elysiaVitePluginSsr({
-            ssr: {},
-            base: "/ssr",
-            root: path.resolve(import.meta.dir, "../"),
-        }));
+    let app: Elysia<any>;
+
+    beforeAll(async () => {
+        if (app) {
+            await app.stop();
+        }
+        return new Promise((resolve) => {
+            app = new Elysia()
+                .use(elysiaVitePluginSsr({
+                    pluginSsr: {},
+                    base: "/ssr",
+                    root: path.resolve(import.meta.dir, "../src"),
+                    plugins: [react()],
+                    onPluginSsrReady() {
+                        resolve(undefined);
+                    }
+                }));
+        })
+    });
 
     it("should server /ssr/", async () => {
         const resp = app.handle(new Request(`http://localhost/ssr/`));

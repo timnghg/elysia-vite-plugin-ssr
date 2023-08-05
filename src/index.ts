@@ -1,66 +1,83 @@
 import {Elysia} from "elysia"
 import {elysiaConnectDecorate} from "elysia-connect";
-import {ViteConfig, elysiaViteConfig} from "elysia-vite";
+import {ViteConfig, getViteConfig} from "elysia-vite";
 import * as path from "path";
 import {renderPage} from "vite-plugin-ssr/server";
 import {ssr, UserConfig as ConfigVpsUserProvided} from "vite-plugin-ssr/plugin";
-import {Connect} from "vite";
+import type {Connect} from "vite";
 import {ServerResponse} from "node:http";
+import vite from "vite";
 
-export type ElysiaVitePluginSsrConfig = ViteConfig & { pluginSsr?: ConfigVpsUserProvided }
+export type ElysiaVitePluginSsrConfig = ViteConfig & { pluginSsr?: ConfigVpsUserProvided, onPluginSsrReady?(): void }
 
-export const elysiaVitePluginSsr = (config?: ElysiaVitePluginSsrConfig) => (app: Elysia) => app
-    .use(elysiaViteConfig(config))
-    .use(elysiaConnectDecorate())
-    .group(config?.base || "", app => app
-        .onBeforeHandle(async (context) => {
-            if (!config?.ssr) return;
-            const viteConfig = await context.viteConfig();
-            const vite = require('vite')
-            const viteDevMiddleware = (
-                await vite.createServer({
-                    root: viteConfig?.root || path.resolve(import.meta.dir, "./"),
-                    ...viteConfig,
-                    server: {middlewareMode: true, ...viteConfig?.server},
-                    plugins: (viteConfig.plugins || []).concat([
-                        ssr({
-                            baseServer: viteConfig.base,
-                            ...(viteConfig as ElysiaVitePluginSsrConfig)?.pluginSsr,
-                        })
-                    ]),
+const log: ((...args: any[]) => void) = !!process.env?.DEBUG
+    ? console.log.bind(console, '[elysia-vite-plugin-ssr]')
+    : (() => {
+    });
+
+export const elysiaVitePluginSsr = (config?: ElysiaVitePluginSsrConfig) => async (app: Elysia) => {
+    const _app = app.use(elysiaConnectDecorate());
+    const {pluginSsr, onPluginSsrReady, ...resolvedConfig} = (await getViteConfig(config) || {});
+    if (!pluginSsr) return _app;
+    log("resolvedConfig", resolvedConfig);
+
+    const vite = require('vite');
+
+    const viteDevMiddleware = (
+        await vite.createServer({
+            root: resolvedConfig?.root || path.resolve(import.meta.dir, "./"),
+            ...resolvedConfig,
+            server: {middlewareMode: true, ...resolvedConfig?.server},
+            plugins: (resolvedConfig?.plugins || []).concat([
+                ssr({
+                    baseServer: resolvedConfig?.base,
+                    ...pluginSsr
                 })
-            ).middlewares;
-            const handled = await context.elysiaConnect(viteDevMiddleware, context);
-            if (handled) return handled;
+            ]),
         })
-        .get("*", async (context) => {
-            const viteConfig = await context.viteConfig();
-            const handled = await context.elysiaConnect(
-                createVitePluginSsrConnectMiddleware(viteConfig),
-                context
-            );
-            if (handled) return handled;
-            return "NOT_FOUND";
-        }));
+    ).middlewares;
 
-function createVitePluginSsrConnectMiddleware(config: ElysiaVitePluginSsrConfig) {
+    log("viteDevMiddleware", !!viteDevMiddleware);
+    onPluginSsrReady?.();
+
+    return _app
+        .group(config?.base || "", app => app
+            .onBeforeHandle(async (context) => {
+                log('onBeforeHandle :: reached', context.request.url);
+                const handled = await context.elysiaConnect(viteDevMiddleware, context);
+                log('onBeforeHandle :: handle?', !!handled);
+                if (handled) return handled;
+            })
+            .get("*", async (context) => {
+                const handled = await context.elysiaConnect(
+                    createVitePluginSsrConnectMiddleware(resolvedConfig),
+                    context
+                );
+                if (handled) return handled;
+                return "NOT_FOUND";
+            }));
+};
+
+function createVitePluginSsrConnectMiddleware(config?: ElysiaVitePluginSsrConfig) {
     return async function vitePluginSsrConnectMiddleware(req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) {
         let urlOriginal = req.originalUrl || req.url || '';
+        urlOriginal = urlOriginal.match(/^(https?:)/)
+            ? new URL(urlOriginal).pathname
+            : urlOriginal;
 
         if (urlOriginal.match(/(ts|tsx|js|jsx|css)$/)) {
             urlOriginal = (req.url || '');
         }
 
-        const pathName = new URL(urlOriginal).pathname;
-
         // fix redirect by remove trailing splash
-        if (pathName.endsWith('/')) {
+        if (urlOriginal.endsWith('/')) {
             urlOriginal = urlOriginal.replace(/\/$/, '');
         }
 
         const pageContextInit = {
             urlOriginal,
         };
+        log('pageContextInit', pageContextInit);
 
         const pageContext = await renderPage(pageContextInit)
         const {httpResponse} = pageContext
