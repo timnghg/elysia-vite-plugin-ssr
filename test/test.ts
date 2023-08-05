@@ -1,5 +1,5 @@
 import {Elysia} from "elysia";
-import {elysiaVitePluginSsr} from "./index.ts";
+import {elysiaVitePluginSsr} from "../src";
 
 const app = new Elysia()
     .use(elysiaVitePluginSsr({}))

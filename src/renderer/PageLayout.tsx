@@ -1,19 +1,22 @@
 import React from 'react'
 import './PageLayout.css'
+import {usePageContext} from "./_default.page.client";
+import {Link} from "../components/link";
 
 export {PageLayout}
 
 function PageLayout({children}) {
+    const pageContext = usePageContext();
     return (
         <React.StrictMode>
             <Layout>
                 <Sidebar>
-                    <a className="navitem" href="/">
+                    <Link href={'/'} className={"navitem"}>
                         Home
-                    </a>
-                    <a className="navitem" href="/about">
+                    </Link>
+                    <Link href={'/about'} className={"navitem"}>
                         About
-                    </a>
+                    </Link>
                 </Sidebar>
                 <Content>{children}</Content>
             </Layout>

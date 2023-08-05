@@ -34,29 +34,53 @@ export const elysiaVitePluginSsr = (config?: ElysiaVitePluginSsrConfig) => (app:
             if (handled) return handled;
         })
         .get("*", async (context) => {
-            const handled = await context.elysiaConnect(vitePluginSsrConnectMiddleware, context);
+            const viteConfig = await context.viteConfig();
+            const handled = await context.elysiaConnect(
+                createVitePluginSsrConnectMiddleware(viteConfig),
+                context
+            );
             if (handled) return handled;
             return "NOT_FOUND";
         }));
 
-async function vitePluginSsrConnectMiddleware(req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) {
-    const pageContextInit = {
-        urlOriginal: (req.originalUrl || `http://${req.headers.host}`).replace(/\/$/, ''),
-    };
-    const pageContext = await renderPage(pageContextInit)
-    const {httpResponse} = pageContext
-    if (!httpResponse) {
-        return next()
-    } else {
-        const {body, statusCode, earlyHints} = httpResponse
-        if (res.writeEarlyHints) res.writeEarlyHints({link: earlyHints.map((e) => e.earlyHintLink)})
+function createVitePluginSsrConnectMiddleware(config: ElysiaVitePluginSsrConfig) {
+    return async function vitePluginSsrConnectMiddleware(req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) {
+        let urlOriginal = req.originalUrl || req.url || '';
 
-        // @todo: do we have headers here?
-        httpResponse?.headers.forEach(([name, value]) => res.setHeader(name, value))
-        res.statusCode = statusCode;
+        if (urlOriginal.match(/(ts|tsx|js|jsx|css)$/)) {
+            urlOriginal = (req.url || '');
+        }
 
-        // @todo: can we do HTTP streams with Elysia?
-        // For HTTP streams use httpResponse.pipe() instead, see https://vite-plugin-ssr.com/stream
-        res.end(body)
+        const pathName = new URL(urlOriginal).pathname;
+
+        // fix redirect by remove trailing splash
+        if (pathName.endsWith('/')) {
+            urlOriginal = urlOriginal.replace(/\/$/, '');
+        }
+
+        const pageContextInit = {
+            urlOriginal,
+        };
+
+        const pageContext = await renderPage(pageContextInit)
+        const {httpResponse} = pageContext
+
+        if (!httpResponse) {
+            return next()
+        } else {
+            const {body, statusCode, earlyHints} = httpResponse
+
+            // @todo: does this work?
+            if (res.writeEarlyHints) res.writeEarlyHints({link: earlyHints.map((e) => e.earlyHintLink)})
+
+            httpResponse?.headers.forEach(([name, value]) => res.setHeader(name, value))
+            res.statusCode = statusCode;
+
+            // @todo: can we do HTTP streams with Elysia?
+            // For HTTP streams use httpResponse.pipe() instead, see https://vite-plugin-ssr.com/stream
+            res.end(body)
+        }
     }
 }
+
+

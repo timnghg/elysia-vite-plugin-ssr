@@ -2,6 +2,7 @@ import React from 'react'
 import {renderToString} from "react-dom/server";
 import {escapeInject, dangerouslySkipEscape} from 'vite-plugin-ssr/server'
 import {PageLayout} from './PageLayout'
+import {PageContext} from "./PageContext";
 
 export {render}
 export {passToClient}
@@ -11,10 +12,13 @@ const passToClient = ['pageProps']
 
 async function render(pageContext: any) {
     const {Page, pageProps} = pageContext
+    
     const html = renderToString(
-        <PageLayout>
-            <Page {...pageProps} />
-        </PageLayout>
+        <PageContext.Provider value={pageContext}>
+            <PageLayout>
+                <Page {...pageProps} />
+            </PageLayout>
+        </PageContext.Provider>
     )
 
     return escapeInject`<!DOCTYPE html>
