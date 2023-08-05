@@ -21,6 +21,5 @@ jobs:
                 with:
                     bun-version: ${{ matrix.bun-version }}
             -   run: bun install
-            -   run: bun add patch-package react react-dom @vitejs/plugin-react
-            -   run: bun x patch-package
+            -   run: bun add react react-dom @vitejs/plugin-react
             -   run: bun test
