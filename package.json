@@ -1,6 +1,6 @@
 {
   "name": "elysia-vite-plugin-ssr",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "module": "src/index.ts",
   "type": "module",
   "scripts": {
@@ -11,10 +11,10 @@
   },
   "dependencies": {
     "elysia-connect": "latest",
-    "elysia-vite": "latest",
+    "elysia-vite": "0.0.7",
     "lodash.omit": "*",
-    "vite": "^4.4.8",
-    "vite-plugin-ssr": "0.4.134-commit-fc71d1f"
+    "vite": "^4.4.9",
+    "vite-plugin-ssr": "0.4.136"
   },
   "devDependencies": {
     "@elysiajs/html": "*",
